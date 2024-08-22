@@ -4,28 +4,119 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Index</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+        }
+        .main-container {
+            display: flex;
+            height: 100vh;
+        }
+        .graph-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        #plotly-graph {
+            flex-grow: 1;
+        }
+    </style>
 </head>
-<body class="bg-gray-100 flex items-center justify-center h-screen">
-    <div class="bg-white p-8 rounded shadow-md w-full max-w-md">
-        <h1 class="text-2xl font-bold mb-4">Calculate Price Difference</h1>
-        <form action="/calculate" method="POST" class="space-y-4">
-            <div>
+<body class="bg-gray-100">
+    <div class="main-container">
+        <div class="graph-container p-4">
+            <div class="mb-4 flex items-center">
+                <label for="stock" class="block text-sm font-medium text-gray-700 mr-2">Stock</label>
+                <input type="text" id="stock" name="stock" class="mt-1 block w-40 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm mr-2">
+                <button id="update-button" class="bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700">Enter</button>
+            </div>
+            <label id="stock-name" class="ml-4 text-sm font-medium text-gray-700">TSLA</label>
+            <div id="plotly-graph" class="w-full bg-white rounded shadow-md"></div>
+        </div>
+        <div class="w-80 bg-white p-8 shadow-md">
+            <h1 class="text-2xl font-bold mb-4">Calculate Profit</h1>
+            <div class="mb-4">
                 <label for="start_date" class="block text-sm font-medium text-gray-700">Start Date</label>
                 <input type="date" id="start_date" name="start_date" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
             </div>
-            <div>
-                <label for="stock" class="block text-sm font-medium text-gray-700">Ticker</label>
-                <input type="text" id="stock" name="stock" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-            </div>
-            <div>
+            <div class="mb-4">
                 <label for="amount_spent" class="block text-sm font-medium text-gray-700">Amount Spent</label>
                 <input type="number" id="amount_spent" name="amount_spent" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
             </div>
-            <div>
-                <button type="submit" class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700">Calculate</button>
-            </div>
-        </form>
+            <button id="get-profit-button" class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700">Calculate</button>
+            <label id="profit" class="block mt-4 text-sm font-medium text-gray-700"></label>
+        </div>
     </div>
+
+
+    <script>
+        // Initial plot data from Flask
+        var initialGraphJSON = JSON.parse('{{ graph_json | safe }}');
+        var layout = initialGraphJSON.layout || {};
+        layout.autosize = true;
+        layout.margin = { l: 50, r: 50, b: 50, t: 50, pad: 4 };
+
+        Plotly.newPlot('plotly-graph', initialGraphJSON.data, layout);
+
+        document.getElementById('update-button').addEventListener('click', function() {
+            var stockName = document.getElementById('stock').value;
+            
+            // Send a Flask request to get new plot data
+            fetch('/update-plot', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ stock: stockName })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Update the Plotly graph with the new data
+                var updatedGraphJSON = JSON.parse(data);
+                var layout = initialGraphJSON.layout || {};
+                layout.autosize = true;
+                layout.margin = { l: 50, r: 50, b: 50, t: 50, pad: 4 };
+
+                Plotly.react('plotly-graph', updatedGraphJSON.data, layout, {responsive: true});
+
+                document.getElementById('stock-name').textContent = stockName;
+            })
+            .catch(error => console.error('Error:', error));
+        });
+
+        document.getElementById('get-profit-button').addEventListener('click', function() {
+            var stockName = document.getElementById('stock').value;
+            var startDate = document.getElementById('start_date').value;
+            var amountSpent = document.getElementById('amount_spent').value;
+            
+            // Send a Flask request to get new plot data
+            fetch('/calculate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ 
+                    stock: stockName, 
+                    start_date: startDate,
+                    amount_spent: amountSpent,
+                 })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('profit').textContent = data.profit;
+            })
+            .catch(error => console.error('Error:', error));
+        });
+
+        window.addEventListener('resize', function() {
+            Plotly.Plots.resize('plotly-graph');
+        });
+    </script>
 </body>
 </html>

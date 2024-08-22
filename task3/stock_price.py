@@ -17,23 +17,25 @@ class CachedLimiterSession(CacheMixin, LimiterMixin, Session):
 
 
 
-class StockPrice:
-    def __init__(self, stock, amount_spent, date_bought):
+class Stock:
+    def __init__(self, stock):
         self.stock = stock
-        self.amount_spent = int(amount_spent)
-        self.date_bought = date_bought
         self.session = CachedLimiterSession(
             limiter=Limiter(RequestRate(2, Duration.SECOND*5)),  # max 2 requests per 5 seconds
             bucket_class=MemoryQueueBucket,
             backend=SQLiteCache("yfinance.cache"),
         )
 
-    def calculate_price_difference(self, start_date):
+    def stock_history(self):
         stock = yf.Ticker(self.stock,  session=self.session)
         stock_history = stock.history(period='max')
-        buy_price = stock_history.loc[self.date_bought]['Close']
+        return stock_history
+
+    def calculate_price_difference(self, amount_spent, date_bought):
+        stock_history = self.stock_history()
+        buy_price = stock_history.loc[date_bought]['Close']
         yesterday = datetime.date.today() - datetime.timedelta(days=1)
         yesterday_price = stock_history.loc[str(yesterday)]['Close']
         percentage_gain = yesterday_price / buy_price
-        new_value = self.amount_spent * percentage_gain
-        return new_value - self.amount_spent
+        new_value = amount_spent * percentage_gain
+        return new_value - amount_spent
