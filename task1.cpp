@@ -51,12 +51,15 @@ int main(int argc, char* argv[]) {
 
         if (arg == "ls") {
             string curr_path;
-            if (curr_dir_ls.find(curr_path) != curr_dir_ls.end()) {
-                continue;
-            }
+            
             for (const auto& s : curr_dir_string) {
                 curr_path += s;
             }
+
+            if (curr_dir_ls.find(curr_path) != curr_dir_ls.end()) {
+                continue;
+            }
+            
             while (getline(file, line) && line[0] != '$') {
                 ss.clear();
                 ss.str(line);
