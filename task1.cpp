@@ -50,8 +50,12 @@ int main(int argc, char* argv[]) {
         ss >> command >> arg;
 
         if (arg == "ls") {
-            if (curr_dir_ls.find("/" + curr_dir->name) != curr_dir_ls.end()) {
+            string curr_path;
+            if (curr_dir_ls.find(curr_path) != curr_dir_ls.end()) {
                 continue;
+            }
+            for (const auto& s : curr_dir_string) {
+                curr_path += s;
             }
             while (getline(file, line) && line[0] != '$') {
                 ss.clear();
@@ -76,7 +80,7 @@ int main(int argc, char* argv[]) {
                     num_files++;
                 }
             }
-            curr_dir_ls.insert("/" + curr_dir->name);
+            curr_dir_ls.insert(curr_path);
             lastLine = line; // Store the last line that caused the loop to exit
         } else if (arg == "cd") {
             string path;
