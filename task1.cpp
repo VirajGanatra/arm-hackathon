@@ -37,7 +37,7 @@ int main(int argc, char* argv[]) {
     ifstream file(filename);
     string line;
     string lastLine;
-    getline(file, line); // Skip the first line as it's always "cd /"
+    getline(file, line); // Skip the first line as it's always "cd /" - told by judge
     
     while (!lastLine.empty() || getline(file, line)) {
         if (!lastLine.empty()) {
