@@ -3,3 +3,4 @@ venv/*
 task3/__pycache__/*
 
 .DS_Store
+hardware/obj_dir/*

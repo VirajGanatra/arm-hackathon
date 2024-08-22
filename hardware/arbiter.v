@@ -1,10 +1,10 @@
 `timescale 1ns / 1ps
 
 module arbiter (
-    input  clk,
+    input clk,
     rst,
-    input  r  [2:0],
-    output g  [2:0]
+    input [2:0] r,
+    output [2:0] g
 );
   parameter A = 2'b00,  // "A" State
   B = 2'b01,  // "B" State
