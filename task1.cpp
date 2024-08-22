@@ -104,7 +104,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    double average = num_files == 0 ? 0 : static_cast<double>(total_depth) / num_files;
+    double average = num_files == 0 ? 0 : std::round(static_cast<double>(total_depth) / num_files * 10) / 10;
     cout << "Number of files: " << num_files << ", Average depth: " << average << ", Deepest directory: ";
     for (const auto& dir : max_dir_string) {
         cout << dir;
