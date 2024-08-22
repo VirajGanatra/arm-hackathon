@@ -46,8 +46,17 @@ module test ();
       end
     end
 
-    if (ok) $display("TEST PASSED");
-    else $display("TEST FAILED");
+    /* verilator lint_off WIDTHTRUNC */
+    if (ok) begin
+      $write("%c[1;32m", 27);
+      $display("TEST PASSED");
+      $write("%c[0m", 27);
+    end else begin
+      $write("%c[1;31m", 27);
+      $display("TEST FAILED");
+      $write("%c[0m", 27);
+    end
+    /* verilator lint_on WIDTHTRUNC */
 
     $finish;
   end
