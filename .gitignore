@@ -5,3 +5,4 @@ graph/__pycache__/*
 *.pyc
 
 .DS_Store
+hardware/obj_dir/*
