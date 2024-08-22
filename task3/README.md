@@ -1,5 +1,5 @@
 # Install dependencies:
-> pip install "yfinance[optional]" requests_cache requests_ratelimiter pyrate_limiter
+> pip install requirements.txt
 
 # To run:
 > $ cd /task3/ \
