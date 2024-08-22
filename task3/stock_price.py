@@ -15,27 +15,25 @@ DATE_BOUGHT = datetime.date(2024, 7, 1)
 class CachedLimiterSession(CacheMixin, LimiterMixin, Session):
     pass
 
-session = CachedLimiterSession(
-    limiter=Limiter(RequestRate(2, Duration.SECOND*5)),  # max 2 requests per 5 seconds
-    bucket_class=MemoryQueueBucket,
-    backend=SQLiteCache("yfinance.cache"),
-)
 
-stock = yf.Ticker(STOCK_BOUGHT,  session=session)
 
-# Get stock info
-stock_history = stock.history(period='max')
+class StockPrice:
+    def __init__(self, stock, amount_spent, date_bought):
+        self.stock = stock
+        self.amount_spent = int(amount_spent)
+        self.date_bought = date_bought
+        self.session = CachedLimiterSession(
+            limiter=Limiter(RequestRate(2, Duration.SECOND*5)),  # max 2 requests per 5 seconds
+            bucket_class=MemoryQueueBucket,
+            backend=SQLiteCache("yfinance.cache"),
+        )
 
-print(str(DATE_BOUGHT))
-buy_price = stock_history.loc[str(DATE_BOUGHT)]['Close']
-
-# Get price yesterday as API does not provide
-# live data for today
-yesterday = datetime.date.today() - datetime.timedelta(days=1)
-yesterday_price = stock_history.loc[str(yesterday)]['Close']
-
-# Calculate change in price
-percentage_gain = yesterday_price / buy_price
-new_value = AMOUNT_SPENT * percentage_gain
-print(f"New price: {new_value}")
-print(f"Profit: {new_value - AMOUNT_SPENT}")
+    def calculate_price_difference(self, start_date):
+        stock = yf.Ticker(self.stock,  session=self.session)
+        stock_history = stock.history(period='max')
+        buy_price = stock_history.loc[self.date_bought]['Close']
+        yesterday = datetime.date.today() - datetime.timedelta(days=1)
+        yesterday_price = stock_history.loc[str(yesterday)]['Close']
+        percentage_gain = yesterday_price / buy_price
+        new_value = self.amount_spent * percentage_gain
+        return new_value - self.amount_spent
