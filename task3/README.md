@@ -1,5 +1,6 @@
-Install dependencies:
-pip install "yfinance[optional]" requests_cache requests_ratelimiter pyrate_limiter
+# Install dependencies:
+> pip install "yfinance[optional]" requests_cache requests_ratelimiter pyrate_limiter
 
-To run:
-$ python3 app.py
+# To run:
+> cd /task3/ \
+> $ python app.py
